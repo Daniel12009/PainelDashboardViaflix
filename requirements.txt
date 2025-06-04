@@ -1,1 +1,11 @@
-streamlit\npandas\nopenpyxl\nmatplotlib\nnumpy
+streamlit
+pandas
+numpy
+plotly
+Pillow
+streamlit
+pandas
+matplotlib
+numpy
+json
+openpyxl
