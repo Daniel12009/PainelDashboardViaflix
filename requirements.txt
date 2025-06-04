@@ -1,11 +1,8 @@
-streamlit
-pandas
-numpy
-plotly
-Pillow
-streamlit
-pandas
 matplotlib
 numpy
 openpyxl
+pandas
+Pillow
+plotly
+streamlit
 streamlit-option-menu
