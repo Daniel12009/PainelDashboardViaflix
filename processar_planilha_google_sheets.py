@@ -171,8 +171,13 @@ def processar_planilha_google_sheets(
         ]
         colunas_margem_necessarias = list(set([col_margem_estrategica, col_margem_real]))
         colunas_outras_necessarias = [actual_col_tipo_anuncio, actual_col_tipo_envio]
+         # Colunas opcionais de líquido
+        col_liquido_real = "Liquido Real"
+        col_liquido_estrategico = "Liquido Estratégico"
+        colunas_liquido = [c for c in [col_liquido_real, col_liquido_estrategico] if c in custos_df_original.columns]
+
         colunas_custos_necessarias_final = list(dict.fromkeys(
-             colunas_base_necessarias + colunas_margem_necessarias + colunas_outras_necessarias
+             colunas_base_necessarias + colunas_margem_necessarias + colunas_outras_necessarias + colunas_liquido
         ))
 
         colunas_faltantes_custos = [col for col in colunas_custos_necessarias_final if col not in custos_df_original.columns]
@@ -204,6 +209,11 @@ def processar_planilha_google_sheets(
         custos_df[COL_VALOR_PEDIDO_CUSTOS] = pd.to_numeric(custos_df[COL_VALOR_PEDIDO_CUSTOS], errors='coerce').fillna(0)
         custos_df[COL_QUANTIDADE_CUSTOS_ABA_CUSTOS] = pd.to_numeric(custos_df[COL_QUANTIDADE_CUSTOS_ABA_CUSTOS], errors='coerce').fillna(0)
         custos_df[COL_DATA_CUSTOS] = pd.to_datetime(custos_df[COL_DATA_CUSTOS], errors='coerce')
+        
+        if col_liquido_real in custos_df.columns:
+            custos_df[col_liquido_real] = pd.to_numeric(custos_df[col_liquido_real], errors='coerce').fillna(0)
+        if col_liquido_estrategico in custos_df.columns:
+            custos_df[col_liquido_estrategico] = pd.to_numeric(custos_df[col_liquido_estrategico], errors='coerce').fillna(0)
         custos_df.dropna(subset=[COL_DATA_CUSTOS], inplace=True)
 
         # Filtrar por período
@@ -491,6 +501,23 @@ def processar_planilha_google_sheets(
                  df_final_com_estoque['Unidades_Vendidas_Periodo'] = 0
             df_alertas_full = None # Indicar falha
         # --- Fim do Processamento VENDAS e ENVIO FULL ---
+        
+        # Calcular Margem Líquida utilizando o tipo de margem selecionado
+        if 'Valor de ADS' in df_final_com_estoque.columns and 'Unidades_Vendidas_Periodo' in df_final_com_estoque.columns:
+            liquido_col = 'Liquido_Estrategico_Num' if "Margem Estratégica (L)" in tipo_margem_selecionada_ui_proc else 'Liquido_Real_Num'
+            df_final_com_estoque['_ads_sum'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)['Valor de ADS'].transform('sum')
+            df_final_com_estoque['_unid_sum'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)['Unidades_Vendidas_Periodo'].transform('sum')
+            df_final_com_estoque['_liq_val'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)[liquido_col].transform('mean')
+            df_final_com_estoque['Margem_Liquida'] = np.where(
+                df_final_com_estoque['_unid_sum'] > 0,
+                (df_final_com_estoque['_ads_sum'] / df_final_com_estoque['_unid_sum']) - df_final_com_estoque['_liq_val'],
+                -df_final_com_estoque['_liq_val']
+            )
+            df_final_com_estoque.drop(['_ads_sum', '_unid_sum', '_liq_val'], axis=1, inplace=True)
+            df_final_com_estoque['Margem_Liquida_Original'] = df_final_com_estoque['Margem_Liquida'].apply(formatar_margem_para_exibicao_final)
+        else:
+            df_final_com_estoque['Margem_Liquida'] = 0.0
+            df_final_com_estoque['Margem_Liquida_Original'] = "0,00%"
 
         # Adicionar coluna de tipo de venda (Marketplace, Atacado, Showroom)
         if COL_TIPO_VENDA not in df_final_com_estoque.columns:
