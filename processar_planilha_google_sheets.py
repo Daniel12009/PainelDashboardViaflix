@@ -211,9 +211,13 @@ def processar_planilha_google_sheets(
         custos_df[COL_DATA_CUSTOS] = pd.to_datetime(custos_df[COL_DATA_CUSTOS], errors='coerce')
         
         if col_liquido_real in custos_df.columns:
-            custos_df[col_liquido_real] = pd.to_numeric(custos_df[col_liquido_real], errors='coerce').fillna(0)
+            custos_df[col_liquido_real] = pd.to_numeric(
+                custos_df[col_liquido_real], errors='coerce'
+            ).fillna(0)
         if col_liquido_estrategico in custos_df.columns:
-            custos_df[col_liquido_estrategico] = pd.to_numeric(custos_df[col_liquido_estrategico], errors='coerce').fillna(0)
+           custos_df[col_liquido_estrategico] = pd.to_numeric(
+                custos_df[col_liquido_estrategico], errors='coerce'
+            ).fillna(0)
         custos_df.dropna(subset=[COL_DATA_CUSTOS], inplace=True)
 
         # Filtrar por período
@@ -254,6 +258,21 @@ def processar_planilha_google_sheets(
             custos_df_filtrado_periodo['Margem_Num'] = custos_df_filtrado_periodo['Margem_Estrategica_Num']
             custos_df_filtrado_periodo['Margem_Original'] = custos_df_filtrado_periodo['Margem_Estrategica_Original']
 
+         # Processar valores líquidos
+        if col_liquido_real in custos_df_filtrado_periodo.columns:
+            custos_df_filtrado_periodo['Liquido_Real_Num'] = pd.to_numeric(
+                custos_df_filtrado_periodo[col_liquido_real], errors='coerce'
+            ).fillna(0)
+        else:
+            custos_df_filtrado_periodo['Liquido_Real_Num'] = 0.0
+
+        if col_liquido_estrategico in custos_df_filtrado_periodo.columns:
+            custos_df_filtrado_periodo['Liquido_Estrategico_Num'] = pd.to_numeric(
+                custos_df_filtrado_periodo[col_liquido_estrategico], errors='coerce'
+            ).fillna(0)
+        else:
+            custos_df_filtrado_periodo['Liquido_Estrategico_Num'] = 0.0
+            
         # --- Processamento da Aba ESTOQUE --- 
         df_final_com_estoque = custos_df_filtrado_periodo.copy()
         # Definir config ANTES do try/except
