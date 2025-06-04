@@ -1,1 +1,23 @@
+__pycache__/
+*.pyc
+.DS_Store
 streamlit.log
+# Additional generated files
+historico.csv
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+
+# Distribution files
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Package management
+pip-wheel-metadata/
+
+# Cache
+.pytest_cache/
