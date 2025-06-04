@@ -93,7 +93,7 @@ def processar_planilha_google_sheets(
             return None, None # Retorna None para indicar falha
 
         # Verificar se as abas necessárias existem no dicionário
-        abas_necessarias = ['CUSTOS', 'ESTOQUE', 'VENDAS'] # Adicionado 'VENDAS'
+        abas_necessarias = ['CUSTOS', 'ESTOQUE', 'VENDAS', 'ADS-ML']
         abas_encontradas = list(sheets_dict.keys())
         for aba in abas_necessarias:
             # Procurar por variações de maiúsculas/minúsculas
@@ -107,7 +107,8 @@ def processar_planilha_google_sheets(
 
         custos_df_original = sheets_dict['CUSTOS'].copy()
         estoque_df_original = sheets_dict['ESTOQUE'].copy()
-        vendas_df_original = sheets_dict['VENDAS'].copy() # DataFrame da aba VENDAS
+        vendas_df_original = sheets_dict['VENDAS'].copy()  # DataFrame da aba VENDAS
+        ads_ml_df_original = sheets_dict.get('ADS-ML', pd.DataFrame()).copy()
 
         # --- Lógica para encontrar nome real das colunas (adaptada para DataFrame) ---
         try:
@@ -340,6 +341,44 @@ def processar_planilha_google_sheets(
         else:
             # Se nenhuma coluna de estoque individual foi criada/encontrada, define o total como 0
             df_final_com_estoque[COL_ESTOQUE_TOTAL_FULL] = 0
+ # --- Processamento da Aba ADS-ML ---
+        ads_agg = pd.DataFrame()
+        try:
+            nome_aba_ads = next((key for key in abas_encontradas if key.upper() == 'ADS-ML'), None)
+            if nome_aba_ads and not ads_ml_df_original.empty:
+                ads_df = ads_ml_df_original.copy()
+                needed_idx = [5, 7, 8, 9]  # F, H, I, J
+                if ads_df.shape[1] > max(needed_idx):
+                    ads_df = ads_df.iloc[:, needed_idx].copy()
+                    ads_df.columns = ['Data', 'Valor ADS', COL_SKU_CUSTOS, COL_CONTA_CUSTOS_ORIGINAL]
+                    ads_df['Data'] = pd.to_datetime(ads_df['Data'], errors='coerce')
+                    ads_df.dropna(subset=['Data'], inplace=True)
+                    ads_df['Valor ADS'] = pd.to_numeric(ads_df['Valor ADS'], errors='coerce').fillna(0)
+                    ads_df[COL_SKU_CUSTOS] = ads_df[COL_SKU_CUSTOS].astype(str).str.strip()
+                    ads_df[COL_CONTA_CUSTOS_ORIGINAL] = ads_df[COL_CONTA_CUSTOS_ORIGINAL].astype(str).str.strip()
+                    ads_df_filter = ads_df[(ads_df['Data'].dt.date >= data_inicio_analise_proc) & (ads_df['Data'].dt.date <= data_fim_analise_proc)]
+                    ads_agg = ads_df_filter.groupby([COL_SKU_CUSTOS, COL_CONTA_CUSTOS_ORIGINAL], as_index=False)['Valor ADS'].sum()
+                else:
+                    st.warning("A aba 'ADS-ML' não possui colunas suficientes para o processamento.")
+            else:
+                st.info("Aba 'ADS-ML' não encontrada. Valores de ADS não serão adicionados.")
+        except Exception as e_ads:
+            st.error(f"Erro ao processar aba ADS-ML: {e_ads}")
+            st.error(traceback.format_exc())
+            ads_agg = pd.DataFrame()
+
+        if not ads_agg.empty:
+            df_final_com_estoque = pd.merge(
+                df_final_com_estoque,
+                ads_agg.rename(columns={'Valor ADS': 'Valor de ADS'}),
+                on=[COL_SKU_CUSTOS, COL_CONTA_CUSTOS_ORIGINAL],
+                how='left'
+            )
+            df_final_com_estoque['Valor de ADS'] = pd.to_numeric(df_final_com_estoque['Valor de ADS'], errors='coerce').fillna(0.0)
+        else:
+            df_final_com_estoque['Valor de ADS'] = 0.0
+
+
 
         # --- Processamento da Aba VENDAS (Exemplo: Calcular total vendido por SKU) ---
         # Adaptar conforme a estrutura real da aba 'VENDAS'
