@@ -674,9 +674,8 @@ def display_detailed_analysis_sku(df):
             NOME_PADRAO_TIPO_ANUNCIO: "Tipo de Anúncio"
         }
         
-        # Adicionar coluna placeholder para Valor de ADS
-        df_filtered["Valor de ADS"] = "N/A" # Ou 0 se preferir numérico
-        colunas_desejadas_map["Valor de ADS"] = "Valor de ADS"
+        if "Valor de ADS" in df_filtered.columns:
+            colunas_desejadas_map["Valor de ADS"] = "Valor de ADS"
 
         # Filtrar o DataFrame para conter apenas as colunas necessárias (na ordem original do df)
         colunas_originais_necessarias = [col for col in colunas_desejadas_map.keys() if col in df_filtered.columns]
@@ -701,6 +700,8 @@ def display_detailed_analysis_sku(df):
             df_display_detalhada["Estoque Full Tiny"] = df_display_detalhada["Estoque Full Tiny"].apply(format_integer)
         if "Estoque Total Full" in df_display_detalhada.columns:
             df_display_detalhada["Estoque Total Full"] = df_display_detalhada["Estoque Total Full"].apply(format_integer)
+        if "Valor de ADS" in df_display_detalhada.columns:
+            df_display_detalhada["Valor de ADS"] = df_display_detalhada["Valor de ADS"].apply(format_currency_brl)    
         # ID do Produto e Tipo de Anúncio geralmente são strings, não precisam de formatação numérica
         # Conta e Marketplace também são strings
         # SKU é string
