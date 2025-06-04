@@ -450,16 +450,20 @@ def display_metrics(df, tipo_margem_selecionada_ui_metrics, categoria=None):
 
     num_pedidos_unicos = df_display.shape[0]
     valor_medio_pedido = total_pedidos / num_pedidos_unicos if num_pedidos_unicos > 0 else 0
-
+    
+    margem_liquida_media = df_display['Margem_Liquida'].mean() if 'Margem_Liquida' in df_display.columns else 0
+    
     # Define o label da métrica (Geral ou por Categoria)
     label_sufixo = f" {categoria}" if categoria else " Geral"
     
-    cols = st.columns(3)
+    cols = st.columns(4)
     with cols[0]:
         st.markdown(f"<div class='metric-card'><div class='metric-label'>Total Pedidos{label_sufixo}</div><div class='metric-value'>{format_currency_brl(total_pedidos)}</div></div>", unsafe_allow_html=True)
     with cols[1]:
         st.markdown(f"<div class='metric-card'><div class='metric-label'>Margem Média{label_sufixo} ({tipo_margem_selecionada_ui_metrics[0]})</div><div class='metric-value' style='color:{get_margin_color(margem_media_pond)};'>{formatar_margem_para_exibicao_final(margem_media_pond)}</div></div>", unsafe_allow_html=True)
     with cols[2]:
+        st.markdown(f"<div class='metric-card'><div class='metric-label'>Margem Líquida Média{label_sufixo}</div><div class='metric-value' style='color:{get_margin_color(margem_liquida_media)};'>{formatar_margem_para_exibicao_final(margem_liquida_media)}</div></div>", unsafe_allow_html=True)
+    with cols[3]:
         st.markdown(f"<div class='metric-card'><div class='metric-label'>Ticket Médio{label_sufixo}</div><div class='metric-value'>{format_currency_brl(valor_medio_pedido)}</div></div>", unsafe_allow_html=True)
 
 def display_charts(df, tipo_margem_selecionada_ui_charts):
@@ -676,6 +680,8 @@ def display_detailed_analysis_sku(df):
         
         if "Valor de ADS" in df_filtered.columns:
             colunas_desejadas_map["Valor de ADS"] = "Valor de ADS"
+        if "Margem_Liquida_Original" in df_filtered.columns:
+            colunas_desejadas_map["Margem_Liquida_Original"] = "Margem Líquida"
 
         # Filtrar o DataFrame para conter apenas as colunas necessárias (na ordem original do df)
         colunas_originais_necessarias = [col for col in colunas_desejadas_map.keys() if col in df_filtered.columns]
@@ -701,7 +707,9 @@ def display_detailed_analysis_sku(df):
         if "Estoque Total Full" in df_display_detalhada.columns:
             df_display_detalhada["Estoque Total Full"] = df_display_detalhada["Estoque Total Full"].apply(format_integer)
         if "Valor de ADS" in df_display_detalhada.columns:
-            df_display_detalhada["Valor de ADS"] = df_display_detalhada["Valor de ADS"].apply(format_currency_brl)    
+            df_display_detalhada["Valor de ADS"] = df_display_detalhada["Valor de ADS"].apply(format_currency_brl)
+        if "Margem Líquida" in df_display_detalhada.columns:
+            pass  # já está formatada    
         # ID do Produto e Tipo de Anúncio geralmente são strings, não precisam de formatação numérica
         # Conta e Marketplace também são strings
         # SKU é string
@@ -709,9 +717,9 @@ def display_detailed_analysis_sku(df):
 
         # Garantir a ordem final das colunas
         ordem_final_colunas = [
-            "SKU", "ID do Produto", "Conta", "Marketplace", "Margem", "Und Vendidas", 
-            "Preço Vendido Und", "Estoque Full VF", "Estoque Full GS", "Estoque Full DK", 
-            "Estoque Full Tiny", "Estoque Total Full", "Valor de ADS", "Tipo de Anúncio"
+            "SKU", "ID do Produto", "Conta", "Marketplace", "Margem", "Und Vendidas",
+            "Preço Vendido Und", "Estoque Full VF", "Estoque Full GS", "Estoque Full DK",
+            "Estoque Full Tiny", "Estoque Total Full", "Valor de ADS", "Margem Líquida", "Tipo de Anúncio"
         ]
         # Filtrar a ordem pelas colunas que realmente existem em df_display_detalhada
         ordem_final_existente = [col for col in ordem_final_colunas if col in df_display_detalhada.columns]
