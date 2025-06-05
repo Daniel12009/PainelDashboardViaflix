@@ -349,24 +349,45 @@ def get_margin_color(margin_value_numeric):
         else: return primary_color # Cor padrão para outros casos (ex: NaN)
     except: return primary_color
 
+def hash_password(password: str) -> str:
+    """Retorna o hash SHA-256 de uma senha."""
+    import hashlib
+    return hashlib.sha256(password.encode()).hexdigest()
+
 def carregar_usuarios():
-    if os.path.exists(USUARIOS_PATH):
+    """Carrega os usuários do arquivo JSON usando senhas hasheadas."""
+    default = {"admin": {"senha": hash_password("admin"), "role": "admin"}}   
+ if os.path.exists(USUARIOS_PATH):
         try:
-            with open(USUARIOS_PATH, 'r') as f: data = json.load(f)
-            return data if isinstance(data, dict) else {"admin": {"senha": "admin", "role": "admin"}}
-        except: return {"admin": {"senha": "admin", "role": "admin"}}
-    else: return {"admin": {"senha": "admin", "role": "admin"}}
+            with open(USUARIOS_PATH, 'r') as f:
+                data = json.load(f)
+            return data if isinstance(data, dict) else default
+        except Exception:
+            return default
+    else:
+        return default
 
 def salvar_usuarios(usuarios):
+     """Salva o dicionário de usuários garantindo que as senhas estejam hasheadas."""
     try:
-        with open(USUARIOS_PATH, 'w') as f: json.dump(usuarios, f, indent=4)
-    except Exception as e: st.error(f"Erro ao salvar usuários: {e}")
+         for info in usuarios.values():
+            pwd = info.get("senha")
+            if pwd and len(pwd) != 64:
+                info["senha"] = hash_password(pwd)
+        with open(USUARIOS_PATH, 'w') as f:
+            json.dump(usuarios, f, indent=4)
+    except Exception as e:
+        st.error(f"Erro ao salvar usuários: {e}")
 
 def authenticate(username, password):
+      """Valida usuário comparando o hash da senha informada."""
     usuarios = carregar_usuarios()
     user_data = usuarios.get(username)
-    if isinstance(user_data, dict) and user_data.get("senha") == password:
-        st.session_state.user_role = user_data.get("role", "user"); return True
+    if isinstance(user_data, dict):
+        stored_hash = user_data.get("senha")
+        if stored_hash and hash_password(password) == stored_hash:
+            st.session_state.user_role = user_data.get("role", "user")
+            return True
     return False
 
 def display_login_screen():
