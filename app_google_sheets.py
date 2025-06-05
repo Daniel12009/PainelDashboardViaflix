@@ -336,9 +336,14 @@ def format_integer(value):
     except (ValueError, TypeError): return 0
 
 def formatar_margem_para_exibicao_final(valor_numerico_percentual):
-    if pd.isna(valor_numerico_percentual): return "0,00%"
-    try: return f"{float(valor_numerico_percentual):.2f}".replace(".", ",") + "%"
-    except (ValueError, TypeError): return str(valor_numerico_percentual)
+    """Converte a margem numérica em string sem arredondar."""
+    if pd.isna(valor_numerico_percentual):
+        return "0,00%"
+    try:
+        valor_str = str(valor_numerico_percentual)
+        return valor_str.replace('.', ',') + '%'
+    except (ValueError, TypeError):
+        return str(valor_numerico_percentual)
 
 def get_margin_color(margin_value_numeric):
     try:
