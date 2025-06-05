@@ -380,7 +380,7 @@ def salvar_usuarios(usuarios):
         st.error(f"Erro ao salvar usuários: {e}")
 
 def authenticate(username, password):
-      """Valida usuário comparando o hash da senha informada."""
+    """Valida usuário comparando o hash da senha informada."""
     usuarios = carregar_usuarios()
     user_data = usuarios.get(username)
     if isinstance(user_data, dict):
