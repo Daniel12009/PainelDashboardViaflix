@@ -63,15 +63,15 @@ st.markdown(f"""<style>
     .main {{ background-color: {background_main}; color: {text_color_main}; }}
     #MainMenu {{visibility: hidden;}} footer {{visibility: hidden;}} header {{visibility: hidden;}}
 
-    [data-testid="stSidebar"] img {
-       display: block;
-       margin-left: auto;
-       margin-right: auto;
-    }
-    .login-container img {
+    [data-testid="stSidebar"] img {{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }}
+    .login-container img {{
         display: block;
         margin: auto;
-    }   
+    }}   
     /* Ajuste completo do sidebar para azul escuro */
     [data-testid="stSidebar"] {{ 
         background-color: {background_sidebar} !important; 
