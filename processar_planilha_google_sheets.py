@@ -521,7 +521,18 @@ def processar_planilha_google_sheets(
             df_alertas_full = None  # Indicar falha
         # --- Fim do Processamento VENDAS e ENVIO FULL ---
         
-        # Calcular Margem Líquida pela soma do ADS dividida pela soma do valor líquido por SKU e dia
+               # Calcular Faturamento Bruto e Margem Líquida
+        group_keys = [COL_SKU_CUSTOS, COL_DATA_CUSTOS]
+
+        # Faturamento_Bruto = PREÇO UND * QUANTIDADE agregado por SKU e Dia
+        df_final_com_estoque['Faturamento_Bruto'] = (
+            pd.to_numeric(df_final_com_estoque[COL_VALOR_PRODUTO_PLANILHA_CUSTOS], errors='coerce').fillna(0)
+            * pd.to_numeric(df_final_com_estoque[COL_QUANTIDADE_CUSTOS_ABA_CUSTOS], errors='coerce').fillna(0)
+        )
+        df_final_com_estoque['Faturamento_Bruto'] = df_final_com_estoque.groupby(group_keys)[
+            'Faturamento_Bruto'
+        ].transform('sum')
+
         if 'Valor de ADS' in df_final_com_estoque.columns:
             liquido_col = 'Liquido_Estrategico_Num' if "Margem Estratégica (L)" in tipo_margem_selecionada_ui_proc else 'Liquido_Real_Num'
             if liquido_col in df_final_com_estoque.columns:
@@ -531,12 +542,13 @@ def processar_planilha_google_sheets(
                 df_final_com_estoque[liquido_col] = pd.to_numeric(
                     df_final_com_estoque[liquido_col], errors='coerce'
                 ).fillna(0.0)
-                group_keys = [COL_SKU_CUSTOS, COL_DATA_CUSTOS]
+                
                 ads_sum = df_final_com_estoque.groupby(group_keys)['Valor de ADS'].transform('sum')
                 liquido_sum = df_final_com_estoque.groupby(group_keys)[liquido_col].transform('sum')
+                faturamento_sum = df_final_com_estoque.groupby(group_keys)['Faturamento_Bruto'].transform('sum')
                 df_final_com_estoque['Margem_Liquida'] = np.where(
-                    liquido_sum > 0,
-                    (ads_sum / liquido_sum) * 100,
+                    faturamento_sum > 0,
+                    ((liquido_sum - ads_sum) / faturamento_sum) * 100,
                     0.0,
                 )
                 df_final_com_estoque['Margem_Liquida_Original'] = df_final_com_estoque[
@@ -644,6 +656,39 @@ def atualizar_margem_sem_reprocessamento(df_existente, tipo_margem_selecionada_u
         df_atualizado['Margem_Critica'] = df_atualizado['Margem_Num'] < 10
     else:
         df_atualizado['Margem_Critica'] = False
+
+    # ---- Recalcular Margem Líquida ----
+    if 'Valor de ADS' in df_atualizado.columns:
+        liquido_col = (
+            'Liquido_Estrategico_Num'
+            if "Margem Estratégica (L)" in tipo_margem_selecionada_ui_atualizar
+            else 'Liquido_Real_Num'
+        )
+
+        if liquido_col in df_atualizado.columns:
+            df_atualizado['Valor de ADS'] = pd.to_numeric(
+                df_atualizado['Valor de ADS'], errors='coerce'
+            ).fillna(0.0)
+            df_atualizado[liquido_col] = pd.to_numeric(
+                df_atualizado[liquido_col], errors='coerce'
+            ).fillna(0.0)
+            group_keys = ['SKU PRODUTOS', 'DIA DE VENDA']
+            ads_sum = df_atualizado.groupby(group_keys)['Valor de ADS'].transform('sum')
+            liquido_sum = df_atualizado.groupby(group_keys)[liquido_col].transform('sum')
+            df_atualizado['Margem_Liquida'] = np.where(
+                liquido_sum > 0,
+                (ads_sum / liquido_sum) * 100,
+                0.0,
+            )
+            df_atualizado['Margem_Liquida_Original'] = df_atualizado[
+                'Margem_Liquida'
+            ].apply(formatar_margem_para_exibicao_final)
+        else:
+            df_atualizado['Margem_Liquida'] = 0.0
+            df_atualizado['Margem_Liquida_Original'] = "0,00%"
+    else:
+        df_atualizado['Margem_Liquida'] = 0.0
+        df_atualizado['Margem_Liquida_Original'] = "0,00%"
 
     # st.info("Margem atualizada no DataFrame.") # Opcional: feedback visual
     return df_atualizado
