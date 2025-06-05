@@ -42,9 +42,14 @@ def converter_margem_para_numero_final(valor_da_planilha):
 # Função para formatar margem para exibição, otimizada para performance
 @st.cache_data(ttl=3600)  # Cache por 1 hora
 def formatar_margem_para_exibicao_final(valor_numerico_percentual):
-    if pd.isna(valor_numerico_percentual): return "0,00%"
-    try: return f"{float(valor_numerico_percentual):.2f}".replace(".", ",") + "%"
-    except (ValueError, TypeError): return str(valor_numerico_percentual)
+    """Converte o valor numérico da margem em string sem arredondar."""
+    if pd.isna(valor_numerico_percentual):
+        return "0,00%"
+    try:
+        valor_str = str(valor_numerico_percentual)
+        return valor_str.replace('.', ',') + '%'
+    except (ValueError, TypeError):
+        return str(valor_numerico_percentual)
 
 # Função principal para processar a planilha, AGORA LENDO DO GOOGLE SHEETS
 @st.cache_data(ttl=600, show_spinner=False)
