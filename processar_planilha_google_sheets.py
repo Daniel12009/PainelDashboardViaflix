@@ -217,7 +217,7 @@ def processar_planilha_google_sheets(
         if col_liquido_estrategico in custos_df.columns:
            custos_df[col_liquido_estrategico] = pd.to_numeric(
                 custos_df[col_liquido_estrategico], errors='coerce'
-            ).fillna(0)
+           ).fillna(0)
         custos_df.dropna(subset=[COL_DATA_CUSTOS], inplace=True)
 
         # Filtrar por período
