@@ -47,7 +47,7 @@ def formatar_margem_para_exibicao_final(valor_numerico_percentual):
     except (ValueError, TypeError): return str(valor_numerico_percentual)
 
 # Função principal para processar a planilha, AGORA LENDO DO GOOGLE SHEETS
-@st.cache_data(ttl=600, show_spinner="Lendo dados do Google Sheets...")  # Cache por 10 minutos
+@st.cache_data(ttl=600, show_spinner=False)
 def processar_planilha_google_sheets(
     google_sheet_url, # Alterado: Recebe a URL da planilha publicada
     tipo_margem_selecionada_ui_proc,
@@ -80,7 +80,7 @@ def processar_planilha_google_sheets(
         COL_ESTOQUE_TOTAL_FULL = "Estoque Total Full"
 
         # --- Leitura do Google Sheets --- 
-        st.info(f"Iniciando leitura da planilha: {google_sheet_url}")
+        st.info("Iniciando leitura da planilha...")
         # Ler todas as abas necessárias de uma vez
         # O Pandas pode ler diretamente da URL publicada no formato xlsx
         # Usar sheet_name=None para ler todas as abas em um dicionário
@@ -517,14 +517,14 @@ def processar_planilha_google_sheets(
             st.error(f"Erro ao processar aba VENDAS ou ENVIO FULL: {e_vendas_full}")
             st.error(traceback.format_exc())
             if 'Unidades_Vendidas_Periodo' not in df_final_com_estoque.columns:
-                 df_final_com_estoque['Unidades_Vendidas_Periodo'] = 0
-            df_alertas_full = None # Indicar falha
+                df_final_com_estoque['Unidades_Vendidas_Periodo'] = 0
+            df_alertas_full = None  # Indicar falha
         # --- Fim do Processamento VENDAS e ENVIO FULL ---
         
-         # Calcular Margem Líquida pela soma do ADS dividida pela soma do valor líquido por SKU e dia
+        # Calcular Margem Líquida pela soma do ADS dividida pela soma do valor líquido por SKU e dia
         if 'Valor de ADS' in df_final_com_estoque.columns:
             liquido_col = 'Liquido_Estrategico_Num' if "Margem Estratégica (L)" in tipo_margem_selecionada_ui_proc else 'Liquido_Real_Num'
-              if liquido_col in df_final_com_estoque.columns:
+            if liquido_col in df_final_com_estoque.columns:
                 df_final_com_estoque['Valor de ADS'] = pd.to_numeric(
                     df_final_com_estoque['Valor de ADS'], errors='coerce'
                 ).fillna(0.0)
@@ -542,9 +542,6 @@ def processar_planilha_google_sheets(
                 df_final_com_estoque['Margem_Liquida_Original'] = df_final_com_estoque[
                     'Margem_Liquida'
                 ].apply(formatar_margem_para_exibicao_final)
-            else:
-                df_final_com_estoque['Margem_Liquida'] = 0.0
-                df_final_com_estoque['Margem_Liquida_Original'] = "0,00%"
             else:
                 df_final_com_estoque['Margem_Liquida'] = 0.0
                 df_final_com_estoque['Margem_Liquida_Original'] = "0,00%"
