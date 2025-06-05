@@ -62,7 +62,16 @@ st.markdown(f"""<style>
     html, body, [class*="css"] {{ font-family: 			'Inter'			, sans-serif; }}
     .main {{ background-color: {background_main}; color: {text_color_main}; }}
     #MainMenu {{visibility: hidden;}} footer {{visibility: hidden;}} header {{visibility: hidden;}}
-    
+
+     [data-testid="stSidebar"] img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    .login-container img {
+        display: block;
+        margin: auto;
+    }   
     /* Ajuste completo do sidebar para azul escuro */
     [data-testid="stSidebar"] {{ 
         background-color: {background_sidebar} !important; 
@@ -396,7 +405,9 @@ def display_login_screen():
         with st.container(border=True):
             try:
                 logo = Image.open(LOGO_PATH)
+                st.markdown("<div class='login-container'>", unsafe_allow_html=True)
                 st.image(logo, width=150)
+                st.markdown("</div>", unsafe_allow_html=True) 
             except FileNotFoundError:
                 st.markdown("## ViaFlix Login")
             except Exception as e:
