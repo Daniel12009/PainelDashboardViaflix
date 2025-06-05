@@ -678,16 +678,21 @@ def atualizar_margem_sem_reprocessamento(df_existente, tipo_margem_selecionada_u
                 df_atualizado[liquido_col], errors='coerce'
             ).fillna(0.0)
             group_keys = ['SKU PRODUTOS', 'DIA DE VENDA']
+            df_atualizado['Faturamento_Bruto'] = (
+                pd.to_numeric(df_atualizado['PREÇO UND'], errors='coerce').fillna(0)
+                * pd.to_numeric(df_atualizado['QUANTIDADE'], errors='coerce').fillna(0)
+            )
+            faturamento_sum = df_atualizado.groupby(group_keys)['Faturamento_Bruto'].transform('sum')            
             ads_sum = df_atualizado.groupby(group_keys)['Valor de ADS'].transform('sum')
             liquido_sum = df_atualizado.groupby(group_keys)[liquido_col].transform('sum')
             df_atualizado['Margem_Liquida'] = np.where(
-                liquido_sum > 0,
-                (ads_sum / liquido_sum) * 100,
+                faturamento_sum > 0,
+                ((liquido_sum - ads_sum) / faturamento_sum) * 100,
                 0.0,
             )
-            df_atualizado['Margem_Liquida_Original'] = df_atualizado[
-                'Margem_Liquida'
-            ].apply(formatar_margem_para_exibicao_final)
+            df_atualizado['Margem_Liquida_Original'] = df_atualizado['Margem_Liquida'].apply(
+                formatar_margem_para_exibicao_final
+            )
         else:
             df_atualizado['Margem_Liquida'] = 0.0
             df_atualizado['Margem_Liquida_Original'] = "0,00%"
