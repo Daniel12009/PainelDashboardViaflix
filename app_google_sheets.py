@@ -356,8 +356,8 @@ def hash_password(password: str) -> str:
 
 def carregar_usuarios():
     """Carrega os usuários do arquivo JSON usando senhas hasheadas."""
-    default = {"admin": {"senha": hash_password("admin"), "role": "admin"}}   
- if os.path.exists(USUARIOS_PATH):
+    default = {"admin": {"senha": hash_password("admin"), "role": "admin"}}
+    if os.path.exists(USUARIOS_PATH):
         try:
             with open(USUARIOS_PATH, 'r') as f:
                 data = json.load(f)
@@ -368,7 +368,7 @@ def carregar_usuarios():
         return default
 
 def salvar_usuarios(usuarios):
-     """Salva o dicionário de usuários garantindo que as senhas estejam hasheadas."""
+    """Valida usuário comparando o hash da senha informada."""
     try:
          for info in usuarios.values():
             pwd = info.get("senha")
@@ -400,8 +400,8 @@ def display_login_screen():
             except FileNotFoundError:
                 st.markdown("## ViaFlix Login")
             except Exception as e:
-                 st.warning(f"Não foi possível carregar o logo: {e}")
-                 st.markdown("## ViaFlix Login")
+                st.warning(f"Não foi possível carregar o logo: {e}")
+                st.markdown("## ViaFlix Login")
 
             st.markdown("<h3 style='text-align: center;'>Acessar Dashboard</h3>", unsafe_allow_html=True)
             username = st.text_input("Usuário", key="login_user_gsheets", placeholder="seu_usuario")
@@ -455,7 +455,7 @@ def display_metrics(df, tipo_margem_selecionada_ui_metrics, categoria=None):
     if df_display.empty: 
         # Se a categoria não tiver dados, não mostrar nada para ela
         if categoria:
-             st.info(f"Sem dados para a categoria: {categoria}")
+            st.info(f"Sem dados para a categoria: {categoria}")
         return
 
     total_pedidos = df_display[COL_VALOR_PEDIDO_CUSTOS].sum()
@@ -677,8 +677,8 @@ def display_detailed_analysis_sku(df):
 
     # --- Fim Agrupamento ---
 
-# --- Exibir Tabela Detalhada (COM Formatação Condicional de Margem) --- # (Título atualizado) 
-     # --- Exibir Tabela Detalhada (SEM Agregação - Ajustado v2) --- 
+    # --- Exibir Tabela Detalhada (COM Formatação Condicional de Margem) --- # (Título atualizado)
+    # --- Exibir Tabela Detalhada (SEM Agregação - Ajustado v2) ---
     if not df_filtered.empty:
         
         # Colunas a serem exibidas e ordem desejada
