@@ -1,8 +1,8 @@
-matplotlib
-numpy
-openpyxl
-pandas
-Pillow
-plotly
-streamlit
-streamlit-option-menu
+matplotlib==3.8.*
+numpy==1.24.*
+openpyxl==3.1.*
+pandas==1.5.*
+Pillow==10.*
+plotly==5.21.*
+streamlit==1.33.*
+streamlit-option-menu==0.3.*
