@@ -370,7 +370,7 @@ def carregar_usuarios():
 def salvar_usuarios(usuarios):
     """Valida usuário comparando o hash da senha informada."""
     try:
-         for info in usuarios.values():
+        for info in usuarios.values():
             pwd = info.get("senha")
             if pwd and len(pwd) != 64:
                 info["senha"] = hash_password(pwd)
