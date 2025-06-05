@@ -1,6 +1,6 @@
 {
-  "admin": {"senha": "admin", "role": "admin"},
-  "felipe": {"senha": "felipe", "role": "user"},
-  "financeiro": {"senha": "cris", "role": "user"},
-  "arthur": {"senha": "passos", "role": "user"}
+  "admin": {"senha": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918", "role": "admin"},
+  "felipe": {"senha": "2bd2d3a31934d76198acc030caca4c31965474fe5fa48f35fef79d0fd74ee1b2", "role": "user"},
+  "financeiro": {"senha": "b2ce3c5cdc0264468b964b96e58290e6b5f7f52696cdf64df6db2df0b0964bd0", "role": "user"},
+  "arthur": {"senha": "4b8f7e9e110850fbc2830e62268351fd8249cc6f750a2adf6d5850685e5dcf87", "role": "user"}
 }
