@@ -521,19 +521,23 @@ def processar_planilha_google_sheets(
             df_alertas_full = None # Indicar falha
         # --- Fim do Processamento VENDAS e ENVIO FULL ---
         
-        # Calcular Margem Líquida utilizando o tipo de margem selecionado
-        if 'Valor de ADS' in df_final_com_estoque.columns and 'Unidades_Vendidas_Periodo' in df_final_com_estoque.columns:
+            # Calcular Margem Líquida com base na soma do ADS dividida pela soma do valor líquido
+        if 'Valor de ADS' in df_final_com_estoque.columns:
             liquido_col = 'Liquido_Estrategico_Num' if "Margem Estratégica (L)" in tipo_margem_selecionada_ui_proc else 'Liquido_Real_Num'
-            df_final_com_estoque['_ads_sum'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)['Valor de ADS'].transform('sum')
-            df_final_com_estoque['_unid_sum'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)['Unidades_Vendidas_Periodo'].transform('sum')
-            df_final_com_estoque['_liq_val'] = df_final_com_estoque.groupby(COL_SKU_CUSTOS)[liquido_col].transform('mean')
-            df_final_com_estoque['Margem_Liquida'] = np.where(
-                df_final_com_estoque['_unid_sum'] > 0,
-                (df_final_com_estoque['_ads_sum'] / df_final_com_estoque['_unid_sum']) - df_final_com_estoque['_liq_val'],
-                -df_final_com_estoque['_liq_val']
-            )
-            df_final_com_estoque.drop(['_ads_sum', '_unid_sum', '_liq_val'], axis=1, inplace=True)
-            df_final_com_estoque['Margem_Liquida_Original'] = df_final_com_estoque['Margem_Liquida'].apply(formatar_margem_para_exibicao_final)
+             if liquido_col in df_final_com_estoque.columns:
+                group_keys = [COL_SKU_CUSTOS, COL_DATA_CUSTOS]
+                df_final_com_estoque['_ads_sum'] = df_final_com_estoque.groupby(group_keys)['Valor de ADS'].transform('sum')
+                df_final_com_estoque['_liq_sum'] = df_final_com_estoque.groupby(group_keys)[liquido_col].transform('sum')
+                df_final_com_estoque['Margem_Liquida'] = np.where(
+                    df_final_com_estoque['_liq_sum'] > 0,
+                    (df_final_com_estoque['_ads_sum'] / df_final_com_estoque['_liq_sum']) * 100,
+                    0.0,
+                )
+                df_final_com_estoque.drop(['_ads_sum', '_liq_sum'], axis=1, inplace=True)
+                df_final_com_estoque['Margem_Liquida_Original'] = df_final_com_estoque['Margem_Liquida'].apply(formatar_margem_para_exibicao_final)
+            else:
+                df_final_com_estoque['Margem_Liquida'] = 0.0
+                df_final_com_estoque['Margem_Liquida_Original'] = "0,00%"
         else:
             df_final_com_estoque['Margem_Liquida'] = 0.0
             df_final_com_estoque['Margem_Liquida_Original'] = "0,00%"
