@@ -341,6 +341,39 @@ def atualizar_margem_sem_reprocessamento(df, tipo_margem_selecionada):
     # Atualizar a coluna de margem crítica
     if 'Margem_Num' in df_atualizado.columns:
         df_atualizado['Margem_Critica'] = df_atualizado['Margem_Num'] < 10
+
+    # ---- Recalcular Margem Líquida ----
+    if 'Valor de ADS' in df_atualizado.columns:
+        liquido_col = (
+            'Liquido_Estrategico_Num'
+            if "Margem Estratégica (L)" in tipo_margem_selecionada
+            else 'Liquido_Real_Num'
+        )
+
+        if liquido_col in df_atualizado.columns:
+            df_atualizado['Valor de ADS'] = pd.to_numeric(
+                df_atualizado['Valor de ADS'], errors='coerce'
+            ).fillna(0.0)
+            df_atualizado[liquido_col] = pd.to_numeric(
+                df_atualizado[liquido_col], errors='coerce'
+            ).fillna(0.0)
+            group_keys = ['SKU PRODUTOS', 'DIA DE VENDA']
+            ads_sum = df_atualizado.groupby(group_keys)['Valor de ADS'].transform('sum')
+            liquido_sum = df_atualizado.groupby(group_keys)[liquido_col].transform('sum')
+            df_atualizado['Margem_Liquida'] = np.where(
+                liquido_sum > 0,
+                (ads_sum / liquido_sum) * 100,
+                0.0,
+            )
+            df_atualizado['Margem_Liquida_Original'] = df_atualizado[
+                'Margem_Liquida'
+            ].apply(formatar_margem_para_exibicao_final)
+        else:
+            df_atualizado['Margem_Liquida'] = 0.0
+            df_atualizado['Margem_Liquida_Original'] = "0,00%"
+    else:
+        df_atualizado['Margem_Liquida'] = 0.0
+        df_atualizado['Margem_Liquida_Original'] = "0,00%"
     
     return df_atualizado
 
