@@ -370,7 +370,7 @@ def carregar_usuarios():
 def salvar_usuarios(usuarios):
     """Valida usuário comparando o hash da senha informada."""
     try:
-         for info in usuarios.values():
+        for info in usuarios.values():
             pwd = info.get("senha")
             if pwd and len(pwd) != 64:
                 info["senha"] = hash_password(pwd)
@@ -380,7 +380,7 @@ def salvar_usuarios(usuarios):
         st.error(f"Erro ao salvar usuários: {e}")
 
 def authenticate(username, password):
-      """Valida usuário comparando o hash da senha informada."""
+    """Valida usuário comparando o hash da senha informada."""
     usuarios = carregar_usuarios()
     user_data = usuarios.get(username)
     if isinstance(user_data, dict):
@@ -416,7 +416,7 @@ def display_login_screen():
 # --- FUNÇÃO PARA CARREGAR E PROCESSAR DADOS DO GOOGLE SHEETS --- 
 def load_and_process_data():
     url = GOOGLE_SHEET_URL
-    st.info(f"Carregando e processando dados de: {url}")
+    st.info("Processando dados... Por favor, aguarde.")
     df_processado, df_alertas = processar_planilha_google_sheets(
         google_sheet_url=url,
         tipo_margem_selecionada_ui_proc=st.session_state.tipo_margem_selecionada_state,
