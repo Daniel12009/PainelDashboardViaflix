@@ -6,3 +6,4 @@ Pillow
 plotly
 streamlit
 streamlit-option-menu
+pytest
