@@ -417,8 +417,19 @@ def display_login_screen():
             st.markdown("<h3 style='text-align: center;'>Acessar Dashboard</h3>", unsafe_allow_html=True)
             username = st.text_input("Usuário", key="login_user_gsheets", placeholder="seu_usuario")
             password = st.text_input("Senha", type="password", key="login_pass_gsheets", placeholder="********")
-            if st.button("Entrar", key="login_btn_gsheets", use_container_width=True, type="primary"):
-                if authenticate(username, password):
+            col_login1, col_login2 = st.columns(2)
+            with col_login1:
+                if st.button("Entrar", key="login_btn_gsheets", use_container_width=True, type="primary"):
+            with col_login2:
+                if st.form_submit_button("ℹ️ Ajuda", use_container_width=True):
+                    st.info("""
+                    **Credenciais padrão:**
+                    - Usuário: demo
+                    - Senha: demo
+                    Entre em contato com o administrador para criar sua conta.
+                    """)
+        
+            if authenticate(username, password):
                     st.session_state.authenticated = True
                     st.session_state.app_state = "loading_data" # Mudar para estado de carregamento
                     st.rerun()
