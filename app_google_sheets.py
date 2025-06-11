@@ -398,57 +398,31 @@ def authenticate(username, password):
             st.session_state.user_role = user_data.get("role", "user")
             return True
     return False
-
-def mostrar_tela_login():
-    """Exibe a tela de login."""
-    st.markdown("""
-    <div style="text-align: center; padding: 2rem;">
-        <h1>🚀 ViaFlix Dashboard</h1>
-        <p style="font-size: 1.2rem; color: #666;">Sistema de Análise de Vendas e Marketplace</p>
-    </div>
-    """, unsafe_allow_html=True)
     
-    # Container centralizado para login
-    col1, col2, col3 = st.columns([1, 2, 1])
-    
+def display_login_screen():
+    col1, col2, col3 = st.columns([1,1,1])
     with col2:
-        st.markdown("""
-        <div style="background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-        """, unsafe_allow_html=True)
-        
-        st.markdown("### 🔐 Fazer Login")
-        
-        with st.form("login_form"):
-            username = st.text_input("👤 Usuário:", placeholder="Digite seu usuário")
-            password = st.text_input("🔒 Senha:", type="password", placeholder="Digite sua senha")
-            
-            col_login1, col_login2 = st.columns(2)
-            
-            with col_login1:
-                login_button = st.form_submit_button("🚀 Entrar", use_container_width=True)
-            
-            with col_login2:
-                if st.form_submit_button("ℹ️ Ajuda", use_container_width=True):
-                    st.info("""
-                    **Credenciais padrão:**
-                    - Usuário: demo
-                    - Senha: demo
-                    
-                    Entre em contato com o administrador para criar sua conta.
-                    """)
-        
-        if login_button:
-            if username and password:
-                if fazer_login(username, password):
-                    st.success("✅ Login realizado com sucesso!")
-                    st.rerun()
-                else:
-                    st.error("❌ Usuário ou senha incorretos!")
-            else:
-                st.warning("⚠️ Por favor, preencha todos os campos!")
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container(border=True):
+            try:
+                logo = Image.open(LOGO_PATH)
+                st.markdown("<div class='login-container'>", unsafe_allow_html=True)
+                st.image(logo, width=150)
+                st.markdown("</div>", unsafe_allow_html=True) 
+            except FileNotFoundError:
+                st.markdown("## ViaFlix Login")
+            except Exception as e:
+                st.warning(f"Não foi possível carregar o logo: {e}")
+                st.markdown("## ViaFlix Login")
 
+            st.markdown("<h3 style='text-align: center;'>Acessar Dashboard</h3>", unsafe_allow_html=True)
+            username = st.text_input("Usuário", key="login_user_gsheets", placeholder="seu_usuario")
+            password = st.text_input("Senha", type="password", key="login_pass_gsheets", placeholder="********")
+            if st.button("Entrar", key="login_btn_gsheets", use_container_width=True, type="primary"):
+                if authenticate(username, password):
+                    st.session_state.authenticated = True
+                    st.session_state.app_state = "loading_data" # Mudar para estado de carregamento
+                    st.rerun()
+                else: st.error("Usuário ou senha inválidos.")
 
 # --- FUNÇÃO PARA CARREGAR E PROCESSAR DADOS DO GOOGLE SHEETS --- 
 def load_and_process_data():
